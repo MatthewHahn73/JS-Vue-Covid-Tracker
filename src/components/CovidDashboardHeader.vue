@@ -3,15 +3,46 @@
     <br />
     <div class="Horizontal_Center">
         <h1>SARS-CoV-2 Dashboard</h1>
-        <h3>Last Updated:  1/26/2023, 5:21 PM</h3>
+        <h3>Last Updated: {{ dateupdated }}</h3>
+        <h3>Current Date: {{ timestamp }}</h3>
+        <h3>Sourced by <a href="https://disease.sh/">Disease.sh</a></h3>
     </div>
 </template>
 
 <script>
 export default {
-    name: 'CovidDashboardHeader',
-    props: {
-        msg: String
+    data() {
+        return {
+            timestamp: "",
+            dateupdated: ""
+        }
+    },
+    created() {
+        setInterval(this.getNow, 100);
+        this.fetchData();
+    },
+    methods: {
+        fetchData() {
+			try {
+				fetch("https://disease.sh/v3/covid-19/vaccine/coverage/countries?lastdays=1")
+					.then(res => res.json())
+					.then(data => {
+						this.getDiseaseDate(data);
+					})
+			} catch (e) {
+				console.log(e);
+			}
+		},
+        getDiseaseDate(data) {
+            this.dateupdated = Object.keys(data[0].timeline)[0].replaceAll("/", "-");
+        },
+        getNow: function () {
+            const today = new Date();
+            const date = (today.getMonth() + 1) + '-' + today.getDate() + '-' +today.getFullYear()    
+            const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+            const dateTime = date + ' ' + time;
+            this.timestamp = dateTime;
+        }
     }
 }
 </script>
@@ -38,5 +69,4 @@ h3 {
     justify-content: center;
     flex-direction: column;
 }
-
 </style>

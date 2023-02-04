@@ -30,8 +30,9 @@ export default {
 		CovidList,
 		CovidPieChart,
 		CovidDashboardHeader
-	}
+	},
 }
+
 </script>
 
 <style>

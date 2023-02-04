@@ -2,163 +2,130 @@
 	<div class="Vertically_Center_Parent">
 		<div class="Vertically_Center">
 			<div class="Horizontal_Center">
-				<div class="Table_Row">
-					<table class="charts-css area show-heading show-labels">
-						<caption> Total Active Covid Cases (2020 - Present) </caption>
-						<tbody>
-							<tr>
-								<th scope="row">
-									2020
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">
-									2021
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">
-									2022
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">
-									2023
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-						</tbody>
-					</table>
+				<div class="Graph_Row">
+					<h3>Worldwide Covid Cases [Total]</h3>
+					<area-chart :data=CovidDataCasesAll loading="Loading..." width="200" height="150"></area-chart>
 				</div>
 			</div>
 			<br />
 			<div class="Horizontal_Center">
-				<div class="Table_Row">
-					<table class="charts-css area show-heading show-labels">
-						<caption> Total Vaccinations (2020 - Present) </caption>
-						<tbody>
-							<tr>
-								<th scope="row">
-									2020
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">
-									2021
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">
-									2022
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">
-									2023
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-						</tbody>
-					</table>
+				<div class="Graph_Row">
+					<h3>Worldwide Vaccine Doses [Total]</h3>
+					<area-chart :data=CovidDataVaccinatedAll loading="Loading..." width="200" height="150"></area-chart>
 				</div>
 			</div>
 			<br />
 			<div class="Horizontal_Center">
-				<div class="Table_Row">
-					<table class="charts-css area show-heading show-labels">
-						<caption> Total Covid Related Deaths (2020 - Present) </caption>
-						<tbody>
-							<tr>
-								<th scope="row">
-									2020
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">
-									2021
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">
-									2022
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">
-									2023
-								</th>
-								<td style="--start: 1.0; --size: 0.65;">
-									<span class="data"> 65 </span>
-								</td>
-							</tr>
-						</tbody>
-					</table>
+				<div class="Graph_Row">
+					<h3>Worldwide Covid Deaths [Total]</h3>
+					<area-chart :data=CovidDataDeathsAll loading="Loading..." width="200" height="150"></area-chart>
 				</div>
 			</div>
 
 		</div>
 	</div>
 </template>
-
 <script>
 export default {
-	props: {
-		msg: String
+	data() {
+		return {
+			CovidDataCasesAll: {},
+			CovidDataVaccinatedAll: {},
+			CovidDataDeathsAll: {}
+		}
+	},
+	created() {
+		this.fetchData();
+	},
+	methods: {
+		fetchData() {
+			try {
+				fetch("https://disease.sh/v3/covid-19/historical/all?lastdays=all")
+					.then(res => res.json())
+					.then(data => {
+						this.buildCaseDeathData(data);
+					})
+				fetch("https://disease.sh/v3/covid-19/vaccine/coverage/countries?lastdays=all")
+					.then(res => res.json())
+					.then(data => {
+						this.buildVaccinationData(data);
+					})
+			} catch (e) {
+				console.log(e);
+			}
+		},
+		buildCaseDeathData(data) {
+			try {
+				this.CovidDataCasesAll = data.cases;
+				this.CovidDataDeathsAll = data.deaths;
+			} catch (e) {
+				console.log(e);
+			}
+		},
+		buildVaccinationData(data) {
+			try {
+				var DateVaccinations = [];
+				for (const [key, value] of Object.entries(data)) {
+					var Country = value.timeline;
+					for (const [key, value] of Object.entries(Country)) {
+						DateVaccinations.push({
+							"Date": key,
+							"Cases": value
+						});
+					}
+				}
+				var CovidDataVaccinatedAllArr = this.sumByKey(DateVaccinations, 'Date', 'Cases');
+				var CovidDataVaccinatedAllObject = this.arrayToObject(CovidDataVaccinatedAllArr);
+				this.CovidDataVaccinatedAll = CovidDataVaccinatedAllObject; 
+			} catch (e) {
+				console.log(e);
+			}
+		},
+		sumByKey(arr, key, value) {
+			const map = new Map();
+			for (const obj of arr) {
+				const currSum = map.get(obj[key]) || 0;
+				map.set(obj[key], currSum + obj[value]);
+			}
+			const res = Array.from(map, ([k, v]) => ({ [key]: k, [value]: v }));
+			return res;
+		},
+		arrayToObject(arr) {
+			var returnObject = {};
+			for(var i=0; i<arr.length; ++i) 
+				returnObject[arr[i].Date] = arr[i].Cases;
+			return returnObject;
+		}
 	}
 }
 </script>
 <style scoped>
+h3 {
+	color: white;
+	font-size: 14px;
+	text-align: center;
+}
+
 .Vertically_Center_Parent {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    height: 48vh;
-    width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	height: 48vh;
+	width: 100%;
 }
 
 .Vertically_Center {
-    position: relative;
-    width: 100%;
+	position: relative;
+	width: 100%;
 }
 
 .Horizontal_Center {
-    display: flex;
-    justify-content: center;
+	display: flex;
+	justify-content: center;
 }
 
-.Table_Row {
+.Graph_Row {
 	height: 20vh;
 	width: 70%;
 }
@@ -166,7 +133,8 @@ export default {
 tr,
 td,
 th,
-caption {
+caption,
+#Total_Cases_Graph {
 	color: white;
 }
 </style>

@@ -2,30 +2,108 @@
     <div class="Vertically_Center_Parent">
         <div class="Vertically_Center">
             <div class="Horizontal_Center">
-                <div id="Pie_Chart_Raw_Numbers" class="Column">
-                    <div>
-                        <div class="piechart_raw"></div>
-                        <h1>Totals</h1>
+                <div class="Column">
+                    <div class="piechart">
+                        <pie-chart :data="RelevantCovidDataAll" loading="Loading..." :legend="false" :donut="true"></pie-chart>
+                        <h1>Total Affected</h1>
                     </div>
                 </div>
-                <div id="Pie_Chart_Vaccinated_Percentage" class="Column">
-                        <div class="piechart_vaccinated"></div>
-                        <h1>Vaccinated Percentages</h1>
+                <div class="Column">
+                    <div class="piechart">
+                        <pie-chart :data="RelevantCovidDataCountries" loading="Loading..." :legend="false" :donut="true"></pie-chart>
+                        <h1>Cases</h1>
+                    </div>
                 </div>
-                <div id="Pie_Chart_Cases_vs_Deaths" class="Column">
-                        <div class="piechart_cases"></div>
-                        <h1>Cases vs Deaths</h1>
+                <div class="Column">
+                    <div class="piechart">
+                        <pie-chart :data="RelevantCovidDataVaccinated" loading="Loading..." :legend="false" :donut="true"></pie-chart>
+                        <h1>Vaccination Doses</h1>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </template>
-
 <script>
+
 export default {
     name: 'CovidPieChart',
-    props: {
-        msg: String
+    data() {
+        return {
+            RelevantCovidDataAll: {},
+            RelevantCovidDataCountries: {},
+            RelevantCovidDataVaccinated: {}
+        }
+    },
+    created() {
+        this.fetchData();
+    },
+    methods: {
+        fetchData() {
+            try {
+                fetch("https://disease.sh/v3/covid-19/all")
+                    .then(res => res.json())
+                    .then(data => {
+                        this.buildDataAll(data);
+                    })
+                fetch("https://disease.sh/v3/covid-19/countries")
+                    .then(res => res.json())
+                    .then(data => {
+                        this.buildDataCountries(data);
+                    })
+                fetch("https://disease.sh/v3/covid-19/vaccine/coverage/countries/")
+                    .then(res => res.json())
+                    .then(data => {
+                        this.buildDataVaccinations(data);
+                    })
+            } catch (e) {
+                console.log(e);
+            }
+        },
+        buildDataAll(data) {
+            this.RelevantCovidDataAll = {
+                "Cases": data.cases,
+                "Recovered": data.recovered,
+                "Deaths": data.deaths
+            }
+        },
+        buildDataCountries(data) {
+            var RelevantCovidDataCountriesTemp = {};
+            var OutsideTop100 = 0;
+            data.sort((a, b) => { return b.cases - a.cases; });     //Sort countries by cases; Desc order
+            for (var i = 0; i < 100; ++i)                            //Set top 50 countries; Set rest to 'other'
+                RelevantCovidDataCountriesTemp[data[i].country] = data[i].cases;
+            for (var j = 100; j < data.length; ++j)
+                OutsideTop100 += data[i].cases;
+            RelevantCovidDataCountriesTemp["Other"] = OutsideTop100;
+            this.RelevantCovidDataCountries = RelevantCovidDataCountriesTemp;
+        },
+        buildDataVaccinations(data) {
+            var RelevantCovidDataVaccinatedArr = [];
+            var RelevantCovidDataVaccinatedTemp = {};
+            var OutsideTop100 = 0;
+            var TodaysDate = this.getTodaysDate();
+            for (var i = 0; i < data.length; ++i) {                          
+                RelevantCovidDataVaccinatedArr.push({
+                    "Country" : data[i].country,
+                    "Vaccinations" : data[i].timeline[TodaysDate]
+                });
+            }
+            RelevantCovidDataVaccinatedArr.sort((a, b) => { return b.Vaccinations - a.Vaccinations; });     //Sort countries by vaccinations; Desc order
+            for (var j = 0; j < 100; ++j)                                                                    //Set top 50 countries; Set rest to 'other'
+                RelevantCovidDataVaccinatedTemp[RelevantCovidDataVaccinatedArr[j].Country] = RelevantCovidDataVaccinatedArr[j].Vaccinations;
+            for (var k = 100; k < data.length; ++k)
+                OutsideTop100 += RelevantCovidDataVaccinatedArr[k].Vaccinations;
+            RelevantCovidDataVaccinatedTemp["Other"] = OutsideTop100;
+            this.RelevantCovidDataVaccinated = RelevantCovidDataVaccinatedTemp;
+        },
+        getTodaysDate() {
+            var today = new Date();
+            var dd = String(today.getDate());
+            var mm = String(today.getMonth() + 1);
+            var yyyy = today.getFullYear();
+            return mm + '/' + dd + '/' + yyyy.toString().slice(2);
+        }
     }
 }
 </script>
@@ -35,6 +113,14 @@ h1 {
     font-size: 18px;
     color: white;
     text-align: center;
+    padding: 0;
+}
+
+h3 {
+    font-size: 14px;
+    color: white;
+    text-align: center;
+    padding: 0;
 }
 
 .Column {
@@ -64,30 +150,7 @@ h1 {
     justify-content: center;
 }
 
-.piechart_raw {
-    width: 200px;
-    height: 22vh;
-    border-radius: 50%;
-    background-image: conic-gradient(white 70deg,
-            green 0 70deg,
-            red 0 235deg,
-            orange 0);
-}
-
-.piechart_vaccinated {
-    width: 200px;
-    height: 22vh;
-    border-radius: 50%;
-    background-image: conic-gradient(pink 70deg,
-            lightblue 0 235deg,
-            orange 0);
-}
-
-.piechart_cases {
-    width: 200px;
-    height: 22vh;
-    border-radius: 50%;
-    background-image: conic-gradient(green 180deg,
-            red 0 180deg);
+.piechart {
+    width: 10vw;
 }
 </style>
