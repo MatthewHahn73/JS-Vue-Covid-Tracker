@@ -1,11 +1,13 @@
 <template>
-    <br />
-    <br />
-    <div class="Horizontal_Center">
-        <h1>SARS-CoV-2 Dashboard</h1>
-        <h3>Last Updated: {{ dateupdated }}</h3>
-        <h3>Current Date: {{ timestamp }}</h3>
-        <h3>Sourced by <a href="https://disease.sh/">Disease.sh</a></h3>
+    <div class="Vertically_Center_Parent_Headers">
+        <div class="Vertically_Center_Headers">
+            <div class="Horizontal_Center_Headers">
+                <h1>SARS-CoV-2 Dashboard</h1>
+                <h3>Data Last Updated: {{ dateupdated }}</h3>
+                <h3>Current Date: {{ timestamp }}</h3>
+                <h3>Sourced by <a href="https://disease.sh/">Disease.sh</a></h3>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -18,27 +20,29 @@ export default {
         }
     },
     created() {
-        setInterval(this.getNow, 100);
+        this.getNow();
         this.fetchData();
+        setInterval(this.getNow, 1000);          //Check every second
+        setInterval(this.fetchData, 300000);     //Check for updates every 5 minutes
     },
     methods: {
         fetchData() {
-			try {
-				fetch("https://disease.sh/v3/covid-19/vaccine/coverage/countries?lastdays=1")
-					.then(res => res.json())
-					.then(data => {
-						this.getDiseaseDate(data);
-					})
-			} catch (e) {
-				console.log(e);
-			}
-		},
+            try {
+                fetch("https://disease.sh/v3/covid-19/vaccine/coverage/countries?lastdays=1")
+                    .then(res => res.json())
+                    .then(data => {
+                        this.getDiseaseDate(data);
+                    })
+            } catch (e) {
+                console.log(e);
+            }
+        },
         getDiseaseDate(data) {
             this.dateupdated = Object.keys(data[0].timeline)[0].replaceAll("/", "-");
         },
-        getNow: function () {
+        getNow() {
             const today = new Date();
-            const date = (today.getMonth() + 1) + '-' + today.getDate() + '-' +today.getFullYear()    
+            const date = (today.getMonth() + 1) + '-' + today.getDate() + '-' + today.getFullYear()
             const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
             const dateTime = date + ' ' + time;
             this.timestamp = dateTime;
@@ -64,9 +68,4 @@ h3 {
     margin: 0;
 }
 
-.Horizontal_Center {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-}
 </style>

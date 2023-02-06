@@ -2,21 +2,24 @@
     <div class="Vertically_Center_Parent">
         <div class="Vertically_Center">
             <div class="Horizontal_Center">
+                <h1 class="Header">Affected Percentages</h1>
+            </div>
+            <div class="Horizontal_Center">
                 <div class="Column">
                     <div class="piechart">
-                        <pie-chart :data="RelevantCovidDataAll" loading="Loading..." :legend="false" :donut="true"></pie-chart>
+                        <pie-chart :data="RelevantCovidDataAll" loading="Loading..." :legend="false" :donut="true" height="200px"></pie-chart>
                         <h1>Total Affected</h1>
                     </div>
                 </div>
                 <div class="Column">
                     <div class="piechart">
-                        <pie-chart :data="RelevantCovidDataCountries" loading="Loading..." :legend="false" :donut="true"></pie-chart>
+                        <pie-chart :data="RelevantCovidDataCountries" loading="Loading..." :legend="false" :donut="true" height="200px"></pie-chart>
                         <h1>Cases</h1>
                     </div>
                 </div>
                 <div class="Column">
                     <div class="piechart">
-                        <pie-chart :data="RelevantCovidDataVaccinated" loading="Loading..." :legend="false" :donut="true"></pie-chart>
+                        <pie-chart :data="RelevantCovidDataVaccinated" loading="Loading..." :legend="false" :donut="true" height="200px"></pie-chart>
                         <h1>Vaccination Doses</h1>
                     </div>
                 </div>
@@ -71,7 +74,7 @@ export default {
             var RelevantCovidDataCountriesTemp = {};
             var OutsideTop100 = 0;
             data.sort((a, b) => { return b.cases - a.cases; });     //Sort countries by cases; Desc order
-            for (var i = 0; i < 100; ++i)                            //Set top 50 countries; Set rest to 'other'
+            for (var i = 0; i < 100; ++i)                           //Set top 50 countries; Set rest to 'other'
                 RelevantCovidDataCountriesTemp[data[i].country] = data[i].cases;
             for (var j = 100; j < data.length; ++j)
                 OutsideTop100 += data[i].cases;
@@ -103,6 +106,9 @@ export default {
             var mm = String(today.getMonth() + 1);
             var yyyy = today.getFullYear();
             return mm + '/' + dd + '/' + yyyy.toString().slice(2);
+        },
+        labelNumber(num) {
+            return num.toLocaleString('en', {useGrouping:true});
         }
     }
 }

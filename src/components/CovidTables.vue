@@ -8,12 +8,14 @@
 				</div>
 			</div>
 			<br />
+			<br />
 			<div class="Horizontal_Center">
 				<div class="Graph_Row">
 					<h3>Worldwide Vaccine Doses [Total]</h3>
 					<area-chart :data=CovidDataVaccinatedAll loading="Loading..." width="200" height="150"></area-chart>
 				</div>
 			</div>
+			<br />
 			<br />
 			<div class="Horizontal_Center">
 				<div class="Graph_Row">
@@ -127,7 +129,7 @@ h3 {
 
 .Graph_Row {
 	height: 20vh;
-	width: 70%;
+	width: 80%;
 }
 
 tr,
